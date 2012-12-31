@@ -1,0 +1,45 @@
+<html>
+	<body>
+		<h1> Paintings </h1>
+		{% for painting in paintings %}
+		<div itemscope itemtype="http://schema.org/Painting" style="font-size:110%;">
+		{% if painting.title %}
+			<h3 itemprop="name">{{painting.title}}</h3>
+		{% endif %}
+		{% if painting.uri %}
+			<div> URI: <a href={{painting.uri}} itemprop="url">{{painting.uri}}</a></div>
+		{% endif %}
+		{% if painting.image %}
+			<div> Image URL: <a href={{painting.image}} itemprop="image">{{painting.image}}</a></div>
+		{% endif %}
+		{% if painting.artist %}
+		<div> Artist: <span itemprop="author">{{painting.artist}}</span> </div>
+		{% endif %}
+		{% if painting.year_created %}
+		<div> Date Created: <span itemprop="dateCreated">{{painting.year_created}}</span></div>
+		{% endif %}
+		{% if painting.medium %}
+		<div>Medium: <span itemprop="medium">{{painting.medium}}</span> </div>
+		{% endif %}
+		<div itemprop="contentLocation" itemscope itemtype="http://schema.org/Place">
+			{% if painting.where %}
+			<div>Location: <span itemprop="name">{{painting.where}}</span></div>
+			{% endif %}
+			<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
+				{% if painting.lat %}
+				<div>Latitude: {{painting.lat}}</div>
+				{% endif %}
+				{% if painting.lng %}
+				<div>Longitude: {{painting.lng}}</div>
+				{% endif %}
+				<meta itemprop="latitude" content={{painting.lat}} />
+    			<meta itemprop="longitude" content={{painting.lng}} />
+			</div>
+		</div>
+		{% if painting.description %}
+		<div>Description: <span itemprop= "description">{{painting.description}}</description></div>
+		{% endif %}
+		</div>
+		{% endfor %}
+	</body>
+</html>

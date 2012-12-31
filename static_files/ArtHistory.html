@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<link href="css/default.css" rel="stylesheet" type="text/css">
+	
+	<!-- GOOGLE MAPS Initialization and functions
+	-->
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyBuO1airBjACG1H-kw53FisemvT6uxUGj0&sensor=false">
+    </script>
+    <script type="text/javascript">
+	  var map;
+      var chicago = new google.maps.LatLng(41.850033, -87.6500523);
+      var pieceDisplayed = true;
+
+	
+	/*Dict of medium type to color*/
+	var mediumToColor = {
+		oilPainting: ["blue", "#0198E1", "Oil painting"],
+		temperaOnPanel: ["green", "#4DBD33", "Tempera on panel"],
+		oilAndPaperOnCanvas: ["orange", "#FF8000", "Oil and paper on canvas"],
+		fresco: ["pink", "#F6CCDA", "Fresco"],
+		acrylicPaint: ["purple", "#CD00CD", "Acrylic paint"],
+		oilOnCanvas: ["red", "#FF0000", "Oil on canvas"],
+		other: ["yellow", "#FCD116", "other"]
+
+	};
+
+	var centerLocation = new google.maps.LatLng(30, 355);
+	
+	/*Initialization of google map */
+      function initialize() {
+        var mapDiv = document.getElementById('map_canvas');
+        var mapOptions = {
+          zoom: 3,
+          center: centerLocation,
+          mapTypeId: google.maps.MapTypeId.TERRAIN, 
+          mapTypeControlOptions: {
+      		mapTypeIds: []
+   		 },
+		  minZoom: 2,
+		  maxZoom: 9
+        }
+        map = new google.maps.Map(mapDiv, mapOptions);
+
+		
+		colorizeMediums();
+
+		welcomeHTML = "<div style='font-size:110%;'<br/><h3>Welcome to Paint By LatLng</h3><br/>";
+		welcomeHTML += "<img id='mona_lisa' src='/img/mona_lisa.jpg' alt='mona lisa' /><br/>";
+		welcomeHTML += "<p>Choose the year range and mediums of the pieces you want to see using the tools at the bottom of the screen.  You can also type in the year range manually instead of using the slider.  Please keep in mind some higher resolution photos might take a few seconds to load.</p><br/><p>Click the update button to get new markers on the map according to your preferences.</p><br/><p>Compiled information on all pieces used in the application are available in html, xml, and turtle formats at <a href='http://www.paintbylatlng.appspot.com/paintings'>paintbylatlng.appspot.com/paintings</a></p></div>";
+		document.getElementById("piece_html").innerHTML = welcomeHTML;
+		$( "#piece_div" ).css('visibility', 'visible');
+		runEffect("slide");
+
+      }
+	  
+	  /*Colors the buttons on the UI */
+	  function colorizeMediums(){
+		var mediumEls = document.getElementById("medium-checks").getElementsByTagName('span');
+		for(var i = 0; i < mediumEls.length; i++){
+			if(!mediumEls[i].getAttribute('id')){}
+			else if(mediumEls[i].getAttribute('id') != "clickCheck"){
+				var pattern = /([a-zA-Z]+)Span/i;
+				var mediumArr = pattern.exec(mediumEls[i].getAttribute('id'));
+				var medium = mediumArr[1] + "";
+				if(mediumToColor[medium]){
+					//alert(mediumToColor[medium][1]);
+					$("#" + mediumEls[i].getAttribute('id')).css('background-color', mediumToColor[medium][1]);
+				}
+			}
+		}
+	  }
+    </script>
+	
+	
+	<!--
+		JQUERY and relevent methods
+	-->
+	<link rel="stylesheet" href="/js/jquery-ui/development-bundle/themes/base/jquery.ui.all.css">
+	<script src="/js/jquery-ui/development-bundle/jquery-1.8.3.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.core.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.widget.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.mouse.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.slider.js"></script>
+	<link rel="stylesheet" href="/js/jquery-ui/development-bundle/demos/demos.css">
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.effect.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.effect-drop.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.effect-explode.js"></script>
+	<script src="/js/jquery-ui/development-bundle/ui/jquery.ui.effect-slide.js"></script>
+	
+	<script>
+	var startYear = 1350;
+	var endYear = 1550;
+	
+	var markers = [];
+	var circles = [];
+	
+	/*Creates the marker on the map*/
+	function createMarker(latlng, id, medium, indexInMarkers){
+
+		var icon = "/img/";
+
+		for(var key in mediumToColor){
+			if(medium == mediumToColor[key][2]){
+				icon = icon + mediumToColor[key][0] + "_waypoint.png";
+				break;
+			}
+		}
+
+		if(icon == "/img/"){
+			icon = icon + "yellow_waypoint.png";
+		}
+
+
+		var marker = new google.maps.Marker({
+			map: map,
+			icon: icon,
+			position: latlng,
+			animation: google.maps.Animation.DROP
+		 });
+		
+		for(var i = 0; i < markers.length; i++){
+			if (markers[i].getPosition().lat() == marker.getPosition().lat() && markers[i].getPosition().lng() == marker.getPosition().lng()){
+				var oldPos = marker.getPosition();
+				var newPos = new google.maps.LatLng(oldPos.lat() + (Math.random() * .2), oldPos.lng() + (Math.random() * .2));
+				marker.setPosition(newPos);
+			}
+		}
+					 
+		google.maps.event.addListener(marker, 'click', function() {			 
+			map.setZoom(8);
+			map.setCenter(marker.getPosition());
+			update_piece(id);
+		 });
+					 		 
+		return marker;
+	}
+	
+	/*Call to the server for html on a particular piece to fill piece div */
+	function update_piece(id) {
+		$.get("/paintings/" + id + ".html", function (data){
+			/*resize image */
+			document.getElementById("piece_html").innerHTML = data;
+			$( "#piece_div" ).css('visibility', 'visible');
+			runEffect("slide");
+			pieceDisplayed = true;
+			}
+		);
+	}
+	
+	/*Returns the year range that's in the text input box*/
+	function getYearRangeArr(){
+		var el = document.getElementById('years');
+		
+		var pattern = /^([0-9]{1,4})(AD|BC)?\s?-\s?([0-9]{1,4})(AD|BC)?$/i;
+		var resultArr = pattern.exec(el.value);
+		
+		if(resultArr){
+			var lowerYear = parseInt(resultArr[1]);
+			var higherYear = parseInt(resultArr[3]);
+			
+			if ((lowerYear > higherYear  && resultArr[2] == "AD" && resultArr[4] == "AD") ||
+				(lowerYear < higherYear && resultArr[2] == "BC" && resultArr[4] == "BC")||
+				(resultArr[2] == "AD" && resultArr[4] == "BC")){
+				document.getElementById('inputYearError').innerHTML = "Minimum year (" + lowerYear + resultArr[2] + ") is higher then max year (" + higherYear + resultArr[4] + ")."
+				return false;
+			} else if(higherYear > new Date().getFullYear()){
+				document.getElementById('inputYearError').innerHTML = "Only years up to the current one (" + new Date().getFullYear() + ") are allowed.";
+				return false;
+			} else if(lowerYear < 1300 && resultArr[2] == "AD"){
+				document.getElementById('inputYearError').innerHTML = "Only years after 1300 are allowed.";
+				return false;
+			} else{
+				
+				if(resultArr[2] == "BC"){
+					lowerYear = lowerYear * -1;
+				}
+				if(resultArr[4] == "BC"){
+					higherYear = higherYear * -1;
+				}
+				$( "#slider-range" ).slider('values', 0, lowerYear);
+				$( "#slider-range" ).slider('values', 1, higherYear);
+				startYear = lowerYear;
+				endYear = higherYear;
+				document.getElementById('inputYearError').innerHTML = "";
+				return [lowerYear, higherYear];
+			}
+		}
+
+		document.getElementById('inputYearError').innerHTML = "Please format the year range in the form \"(year)AD - (year)AD\".";
+		return false;
+	}
+
+
+//To be used for debugging ajax server calls
+ /*$.ajax({
+    url: '/pointUpdate?yearRange%5B%5D=1350&yearRange%5B%5D=1351&mediums%5B%5D=Oil+painting&mediums%5B%5D=Tempera+on+panel&mediums%5B%5D=Oil+and+paper+on+canvas&mediums%5B%5D=Fresco&mediums%5B%5D=Acrylic+paint&mediums%5B%5D=Oil+on+canvas&mediums%5B%5D=other',
+    dataType: 'json',
+    success: function( data ) {
+      alert( "SUCCESS:  " + data );
+    },
+    error: function( data ) {
+      alert( "ERROR:  " + data );
+    }
+  });*/
+	
+	
+	/*Method to get a new set of markers for the map based on what the settings are */
+	function update_points() {
+		yearRangeArr = getYearRangeArr();
+		if(!yearRangeArr){
+			//yearRangeArr = [startYear, endYear];
+			return;
+		}
+		
+		/**Get mediums that are checked **/
+		mediumsArr = [];
+		checkBoxes = document.getElementById("medium-checks").getElementsByTagName('input');
+		for (var i=0; i<checkBoxes.length; i++) {
+			if(checkBoxes[i].checked){
+				mediumsArr.push(mediumToColor[checkBoxes[i].id][2]);
+			}
+		}
+		if(mediumsArr.length == 0){
+			mediumsArr.push("None");
+		}
+		
+		/**Makes call to server with year range and mediums that are checked **/
+		$.getJSON("/pointUpdate",  {yearRange: yearRangeArr, mediums: mediumsArr}, function(json){
+			if(json['success']){
+					for(var i=0; i< markers.length; i++){
+						markers[i].setMap(null);
+					}
+					for(var i = 0; i < circles.length; i++){
+						circles[i].setMap(null);
+					}
+						markers = [];
+						circles = [];
+
+				markers = [];
+				var numPieces = json['pieces'].length;
+				for(var i=0; i<numPieces; i++){
+					setTimeout(function() {
+						var piece = json['pieces'].pop();
+						markers[markers.length]	= createMarker(new google.maps.LatLng(piece['lat'],piece['lng']), piece['_id']['$oid'], piece['medium'], i);
+						if(markers.length == numPieces){
+							determineCirclesMap();
+						}
+						}, i * 30);
+				}
+				closeDisplay();
+				map.setZoom(3);
+				map.setCenter(centerLocation);
+			} else{
+				document.getElementById('inputYearError').innerHTML = "No pieces were found.";
+			}
+		});
+		
+	}
+
+	/*Creates the circles on the map according to where the markers are */
+	function determineCirclesMap(){
+		var markers2d = [];
+		var numCloseCircles = 2;
+		/*This should be 500 km*/
+		var closeDistance = 500000;
+		var foundNeighbor;
+		var marker;
+
+		// alert("checked " + markers.length);
+
+		for(var i =0; i < markers.length;i++){
+			marker = markers[i];
+			foundNeighbor = false;
+			for(var j =0; j < markers2d.length;j++){
+				for(var k = 0; k < markers2d[j].length;k++){
+					if(distance(marker, markers2d[j][k]) <= closeDistance && marker.getIcon() == markers2d[j][k].getIcon()){
+						markers2d[j].push(marker);
+						foundNeighbor = true;
+						break;
+						break;
+					}
+				}
+			}
+			if(!foundNeighbor){
+				markers2d.push([marker]);
+			}
+
+	    }
+	    for(var j = 0; j < markers2d.length;j++){
+	    	if(markers2d[j].length >= numCloseCircles){
+	    		determineCirclesReduce(markers2d[j]);
+	    	}
+	    }
+
+	}
+
+	function distance(mark1, mark2){
+		return google.maps.geometry.spherical.computeDistanceBetween(mark1.getPosition(), mark2.getPosition());
+	}
+
+	/*Determines the midpoint and size for the circles */
+	function determineCirclesReduce(markerArr){
+		var mark = markerArr[0];
+
+		var pattern = /([a-zA-Z]+)\_waypoint\.png$/i;
+		var colorName = pattern.exec(mark.getIcon());
+		for (var key in mediumToColor) {
+		 	if(mediumToColor[key][0] == colorName[1]){
+		 		var color = mediumToColor[key][1];
+		 	}
+		}
+
+		var xArr = [];
+		var yArr = [];
+		var zArr = [];
+
+		for(var i = 0; i < markerArr.length; i++){
+			var point = markerArr[i].getPosition();
+			var latRad = point.lat() * (Math.PI / 180);
+			var lngRad = point.lng() * (Math.PI / 180);
+
+			xArr.push(Math.cos(latRad) * Math.cos(lngRad));
+			yArr.push(Math.cos(latRad) * Math.sin(lngRad));
+			zArr.push(Math.sin(latRad));
+		}
+
+		
+		var X = 0;
+		var Y = 0;
+		var Z = 0;
+
+		for(var i = 0; i < xArr.length; i++){
+			X += xArr[i];
+		}
+		for(var i = 0; i < yArr.length; i++){
+			Y += yArr[i];
+		}
+		for(var i = 0; i < zArr.length; i++){
+			Z += zArr[i];
+		}
+
+		var lng = Math.atan2(Y, X);
+		var hyp = Math.sqrt(X * X + Y * Y);
+		var lat = Math.atan2(Z, hyp);
+
+
+		lat = lat * (180/Math.PI);
+		lng = lng * (180/Math.PI);
+		var geographicMidpoint = new google.maps.LatLng(lat, lng);
+
+		var radius = 0;
+		for(var i = 0; i < markerArr.length; i++){
+			var distance =	google.maps.geometry.spherical.computeDistanceBetween(geographicMidpoint, markerArr[i].getPosition());
+			if(distance > radius){
+				radius = distance;
+			}
+		}
+		radius += 100000;
+
+		 var circleOptions = {
+            strokeColor: color,
+            strokeOpacity: 0.2,
+            strokeWeight: 2,
+            fillColor: color,
+            fillOpacity: 0.15,
+            map: map,
+            center: geographicMidpoint,
+            radius: radius
+          };
+
+
+          circles.push(new google.maps.Circle(circleOptions));
+	}
+	
+	/*Checks corresponding checkbox*/
+	function checkThis(boxName) {
+		boxEl = document.getElementById(boxName)
+		
+		if(boxEl.checked){
+			boxEl.checked = false;
+		} else{
+			boxEl.checked = true;
+
+		}
+	}
+	
+	$(function() {
+		$( "#slider-range" ).slider({
+			range: true,
+			min: 1300,
+			max: new Date().getFullYear(),
+			values: [ startYear, endYear ],
+			slide: function( event, ui ) {
+				sliderEventFunction();
+			}
+		});
+		$( "#years" ).val( $( "#slider-range" ).slider( "values", 0 ) +
+			"AD - " + $( "#slider-range" ).slider( "values", 1 ) + "AD" );
+	});
+	
+	/*When the slider moves, the values are updated in the textbox */
+	function sliderEventFunction(){
+		var values = $( "#slider-range" ).slider("option", "values");
+		var strOut = "";
+		if(values[ 0 ] < 0){
+			strOut = values[ 0 ] * -1 + "BC - ";
+		} else{
+			strOut = values[ 0 ] + "AD - ";
+		}
+		if(values [ 1 ] < 0){
+			strOut += values[ 1 ] * -1 + "BC";
+		} else {
+			strOut += values[ 1 ] + "AD";
+		}
+
+		$( "#years" ).val(strOut);
+		startYear = values[0];
+		endYear = values[1];
+
+	}
+	
+	/*Jquery effects on the piece div */
+	function runEffect(selectedEffect) {
+
+			// most effect types need no options passed by default
+			var options = {};
+			// some effects have required parameters
+			if ( selectedEffect === "scale" ) {
+				options = { percent: 0 };
+			} else if ( selectedEffect === "transfer" ) {
+				options = { to: "#button", className: "ui-effects-transfer" };
+			} else if ( selectedEffect === "size" ) {
+				options = { to: { width: 200, height: 60 } };
+			}
+
+			// run the effect
+			$( "#piece_div" ).effect( selectedEffect, options, 500);
+	};
+	
+	// callback function to bring a hidden box back
+	function callback() {
+		setTimeout(function() {
+			$( "#piece_div" ).removeAttr( "style" ).hide().fadeIn();
+		}, 2000 );
+	};
+	
+	function closeDisplay(){
+		if(pieceDisplayed){
+			runEffect("drop");
+			pieceDisplayed = false;
+		} 
+	}
+
+	function checkForEnter(e) {
+	    if (e.keyCode == 13) {
+	       update_points();
+	    }
+	}
+	
+
+	</script>
+  </head>
+  <body onload="initialize()">
+    <div id="map_canvas" style="width:100%; height:100%"></div>
+	
+	<div id="input_div">
+		<p>
+		<label for="years">Year Range:</label>
+		<input type="text" id="years" style="border:0; font-weight:bold;" onkeyup="checkForEnter(event)" />
+		<span id="inputYearError" style="color: red; font-size:120%"></span>
+		<button onclick="update_points();" style="border:1px solid black; float: right; cursor:pointer;"> Update</button>
+		</p>
+
+		<div id="slider-range"></div><br/>
+		
+		<img id='timeline' src='/img/timeline.png' alt='Timeline Image' /><br/>
+		<div id="medium-checks">
+			<span id="oilPaintingSpan" class="medSp"><input type="checkbox" class='medChk' id="oilPainting" checked><span class="clickCheck" onclick="checkThis('oilPainting')" > Oil painting</span></span>
+			<span id="temperaOnPanelSpan" class="medSp"><input type="checkbox" class="medChk" id="temperaOnPanel" checked><span class="clickCheck" onclick="checkThis('temperaOnPanel')"> Tempera on panel</span></span>
+			<span id="oilAndPaperOnCanvasSpan" class="medSp"><input type="checkbox" class="medChk" id="oilAndPaperOnCanvas" checked><span class="clickCheck" onclick="checkThis('oilAndPaperOnCanvas')"> Oil and paper on canvas</span></span>
+			<span id="frescoSpan" class="medSp"><input type="checkbox" class="medChk" id="fresco" checked><span class="clickCheck" onclick="checkThis('fresco')"> Fresco</span></span>
+			<span id="acrylicPaintSpan" class="medSp"><input type="checkbox" class="medChk" id="acrylicPaint" checked><span class="clickCheck" onclick="checkThis('acrylicPaint')"> Acrylic paint</span></span>
+			<span id="oilOnCanvasSpan" class="medSp"><input type="checkbox" class="medChk" id="oilOnCanvas" checked><span class="clickCheck" onclick="checkThis('oilOnCanvas')"> Oil on canvas</span></span>
+			<span id="otherSpan" class="medSp"><input type="checkbox" class="medChk" id="other" checked><span class="clickCheck" onclick="checkThis('other')"> Other</span></span>
+		</div>
+	</div>
+	
+	<div id="piece_div" class="ui-widget-content ui-corner-all" >
+	<img id="display_close_button" src="/img/close.png" alt="Close display" onclick="closeDisplay()" height="11" width="11"/>
+	<div id="piece_html"></div></div>
+	
+  </body>
+</html>

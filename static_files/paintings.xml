@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paintings>
+    {% for painting in paintings %}
+    <painting>
+      {% if painting.uri %}
+      	<uri>{{painting.uri}}</uri>
+      {% endif %}
+      {% if painting.title %}
+        <title>{{painting.title}}</title>
+      {% endif %}
+      {% if painting.image %}
+      	<img_url>{{painting.image}}</img_url>
+      {% endif %}
+      {% if painting.artist %}
+        <artist>{{painting.artis}}</artist>
+      {% endif %}
+      {% if painting.year_created %}
+        <year_created>{{painting.year_created}}</year_created>
+      {% endif %}
+      {% if painting.medium %}
+        <medium>{{painting.medium}}</medium>
+      {% endif %}
+        <where>
+          {% if painting.where %}
+            <location>{{painting.where}}</location>
+          {% endif %}
+          {% if painting.lat %}
+            <lat>{{painting.lat}}</lat>
+          {% endif %}
+          {% if painting.lng %}
+            <lng>{{painting.lng}}</lng>
+          {% endif %}
+    	</where>
+      {% if painting.description %}
+		<description>{{painting.description}}</description>
+	  {% endif %}
+    </painting>
+    {% endfor %}
+</paintings>

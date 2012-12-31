@@ -1,0 +1,139 @@
+html, body {
+  height: 80%;
+  margin: 0;
+  padding: 0;
+}
+
+#map_canvas, #input_div, #piece_div{ 
+position: absolute; 
+}
+
+#map_canvas {
+  top: 0px;
+  height: 100%;
+  z-index: 1;
+}
+
+@media print {
+  html, body {
+    height: auto;
+  }
+
+  #map_canvas {
+    height: 650px;
+  }
+}
+
+#input_div{
+	position: absolute;
+	bottom: 10px;
+	z-index: 2;
+	left: 5%;
+	width: 90%;
+	padding-top: 5px;
+	padding-left: 10px;
+	padding-right: 40px;
+	
+	margin: 0px;
+	height: 170px;
+
+	/* Fallback for web browsers that don't support RGBa */
+	background-color: rgb(0, 0, 0);
+	/* RGBa with 0.6 opacity */
+	background-color: rgba(0, 0, 0, 0.3);
+	/* For IE 5.5 - 7*/
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);
+	/* For IE 8*/
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
+}
+
+#piece_div{
+	bottom: 220px;
+	right: 20px;
+	width: 40%;
+	height: 60%;
+	background-color: #ffffff;
+	border: 1px solid black;
+	z-index: 2;
+	margin: 0px;
+	visibility:hidden;
+	-moz-box-shadow: 10px 10px 5px #888;
+	-webkit-box-shadow: 10px 10px 5px #888;
+	box-shadow: 10px 10px 5px #888;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+#piece_html{
+	padding: 100px;
+	width: 90%;
+	height: 100%;
+	padding: 20px;
+}
+
+#display_close_button{
+	position: absolute;
+	right: 10px;
+	cursor: pointer;
+	width: 15px;
+	height: 15px;
+	margin-top: 5px;
+}
+
+#medium-checks{
+	position: relative;
+	bottom: 30px;
+	margin: 0px;
+	text-align: center;
+}
+
+.clickCheck{
+	padding-right: 20px;
+	cursor: pointer;
+}
+
+.medSp{
+	height: 35px;
+	width: 70px;
+	background-color: #ffffff;
+	border: solid 1px black;
+	margin-right: 30px;
+}
+
+.medChk{
+	position: relative;
+	top: 3px;
+	cursor: pointer;
+}
+
+#mona_lisa{
+	width: 230px;
+	height: 300px;
+	float: left;
+	padding-right: 10px;
+}
+
+#slider-range .ui-slider-range { 
+	background: #858585; 
+}
+
+#slider-range{
+	width: 101%;
+	position: relative;
+	left: 6px;
+}
+
+#timeline{
+	position: relative;
+	bottom: 29px;
+	right: 70px;
+	height: 80px;
+	/*width: 835px;*/
+	width: 112%;
+	margin: 0px;
+}
+
+#oilOnPanel{
+	position: relative;
+	top: 3px;
+}

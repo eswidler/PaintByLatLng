@@ -1,0 +1,68 @@
+<html>
+	<script>
+	function resizeImg(){
+		var image = document.getElementById('paintingImg');
+		var percent = -1;
+		var allowWidth = 250;
+		var allowHeight = 400;
+
+
+		if(image.width > allowWidth){
+			percent = allowWidth / image.width; 
+
+		} else if(image.height > allowHeight){
+			percent = allowHeight / image.height; 
+		}
+
+		if(percent != -1){
+			var newW = percent * image.width;
+			var newH = percent * image.height;
+
+			image.width = newW;
+			image.height = newH;
+		}
+
+		document.getElementById('loading').style.visibility = 'hidden';
+		image.style.visibility = "visible";
+	}
+	</script>
+	<body >
+		<div itemscope itemtype="http://schema.org/Painting" style="font-size:110%;">
+		{% if image %}
+			<div id='loading' style='float:middle;'/>Loading...<br/><br/></div><a href={{image}} target='_blank'><img id="paintingImg" src={{image}} alt={{title}} itemprop="image" style="float:left; margin: 10px;visibility: hidden;" onload="resizeImg();"></a>
+		{% endif %}
+			{% if title %}
+				<h3 itemprop="name">{{title}}</h3>
+			{% endif %}
+			{% if artist %}
+			<h4><i><span itemprop="author">{{artist}}</span></i> </h4>
+			{% endif %}
+			{% if year_created %}
+			<div><span itemprop="dateCreated">{{year_created}}</span></div>
+			{% endif %}
+			{% if medium %}
+			<div>Medium: <span>{{medium}}</span> </div>
+			{% endif %}
+			<div itemprop="contentLocation" itemscope itemtype="http://schema.org/Place">
+				
+				{% if where %}
+				<div><span itemprop="name">{{where}}</span></div>
+				{% endif %}
+				<div itemprop="geo" itemscope itemtype="http://schema.org/GeoCoordinates">
+					{% if lat %}
+					(Lat: {{lat}}, 
+					<meta itemprop="latitude" content={{lat}} />
+					{% endif %}
+					{% if lng %}
+					Lng: {{lng}})
+					<meta itemprop="longitude" content={{lng}} />
+					{% endif %}
+					
+				</div><br/>
+			</div>
+			{% if description %}
+			<div><span itemprop= "description" style="float:left;clear:both;">{{description}}</span></div>
+			{% endif %}
+		</div><br/><br/>
+	</body>
+</html>

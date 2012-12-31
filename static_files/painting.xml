@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<painting>
+  {% if title %}
+	<title>{{title}}</title>
+  {% endif %}
+  {% if image %}
+  	<img_url>{{image}}</img_url>
+  {% endif %}
+  {% if artist %}
+	<artist>{{artist}}</artist>
+  {% endif %}
+  {% if year_created %}
+	<year_created>{{year_created}}</year_created>
+  {% endif %}
+  {% if medium %}
+	<medium>{{medium}}</medium>
+  {% endif %}
+	<where>
+	  {% if where %}
+		<location>{{where}}</location>
+	  {% endif %}
+	  {% if lat %}
+		<lat>{{lat}}</lat>
+	  {% endif %}
+	  {% if lng %}
+		<lng>{{lng}}</lng>
+	  {% endif %}
+	</where>
+  {% if description %}
+	<description>{{description}}</description>
+  {% endif %}
+</painting>

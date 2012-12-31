@@ -1,0 +1,32 @@
+@prefix dbpedia-owl: <http://dbpedia.org/ontology/> .
+@prefix dbpedia-prop: <http://dbpedia.org/property/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+{% for painting in paintings %}
+	<{{ painting.uri}}> a dbpedia-owl:Painting.
+	<{{ painting.uri}}>
+		dcterms:isPartOf <http://localhost:8888/paintings>
+	{% if painting.title %}
+		dcterms:title "{{ painting.title }}";
+	{% endif %}
+	{% if painting.image %}
+		foaf:depiction "{{ painting.image }}";
+	{% endif %}
+	{% if painting.artist %}
+		dbpedia-prop:artist "{{ painting.artist }}";
+	{% endif %}
+	{% if painting.year_created %}
+		dcterms:created "{{ painting.year_created }}";
+	{% endif %}
+	{% if painting.medium %}
+		dcterms:medium "{{ painting.medium }}";
+	{% endif %}
+	{% if painting.where %}
+		dbpedia-prop:city "{{ painting.where }}";
+	{% endif %}
+	{% if painting.description %}
+		dcterms:description "{{ painting.description }}" ;
+	{% endif %}
+	.
+{% endfor %}
